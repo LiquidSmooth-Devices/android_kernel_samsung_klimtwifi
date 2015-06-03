@@ -14,7 +14,6 @@
  */
 
 
-
 digraph policy_objects_diagram {
 	rankdir=LR
 	size="6,6"
