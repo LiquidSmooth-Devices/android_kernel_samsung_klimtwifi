@@ -123,23 +123,23 @@ typedef struct _mali_dvfs_info{
 } mali_dvfs_info;
 
 static mali_dvfs_info mali_dvfs_infotbl[] = {
-	{812500, 100, 0, 40, 0, 160000, 83000, 250000},
-	{812500, 177, 41, 50, 0, 160000, 83000, 250000},
+	{812500, 100, 0, 40, 0, 160000, 83000, 100000},
+	{812500, 177, 41, 50, 0, 160000, 83000, 100000},
 	{862500, 266, 51, 60, 0, 400000, 222000, 250000},
 	{912500, 350, 61, 70, 0, 667000, 333000, 250000},
-	{962500, 420, 71, 80, 0, 800000, 400000, 250000},
+	{962500, 420, 71, 80, 0, 800000, 400000, 650000},
 	{1000000, 480, 81, 85, 0, 800000, 400000, 650000},
 	{1037500, 533, 86, 90, 0, 800000, 400000, 1200000},
-	{1050000, 600, 91, 93, 0, 800000, 600000, 1400000},
-        {1075000, 667, 94, 96, 0, 800000, 600000, 1600000},
-        {1100000, 733, 97, 99, 0, 800000, 600000, 1800000},
+	{1050000, 600, 91, 93, 0, 800000, 400000, 1400000},
+        {1075000, 667, 94, 96, 0, 800000, 400000, 1600000},
+        {1100000, 733, 97, 99, 0, 800000, 400000, 1800000},
 };
 
 #define MALI_DVFS_STEP	ARRAY_SIZE(mali_dvfs_infotbl)
 
 unsigned int dvfs_step_min = 0;
 unsigned int dvfs_step_max = 10;
-unsigned int dvfs_step_max_minus1 = 667;
+unsigned int dvfs_step_max_minus1 = 480;
 unsigned int cur_gpu_freq = 0;
 
 #ifdef CONFIG_MALI_T6XX_DVFS
@@ -186,7 +186,7 @@ void hlpr_set_gpu_volt_table(int gpu_table[])
 {
         int i;
         int u = 0;
-        for (i = 0; i < MALI_DVFS_STEP; i++)
+        for (i = 0; i < dvfs_step_max; i++)
         {
                 mali_dvfs_infotbl[i].voltage = gpu_table[u];
                 pr_alert("SET GPU VOLTAGE TABLE %d - %d - %d", i, mali_dvfs_infotbl[i].clock, mali_dvfs_infotbl[i].voltage);
@@ -484,14 +484,13 @@ int kbase_platform_dvfs_enable(bool enable, int freq)
 		dvfs_status->step = kbase_platform_dvfs_get_level(freq);
 		spin_unlock_irqrestore(&mali_dvfs_spinlock, flags);
 
-#ifdef CONFIG_MALI_T6XX_FREQ_LOCK
 		if (freq == MALI_DVFS_START_FREQ) {
 			if (dvfs_status->min_lock != -1)
 				dvfs_status->step = MAX(dvfs_status->min_lock, dvfs_status->step);
 			if (dvfs_status->max_lock != -1)
 				dvfs_status->step = MIN(dvfs_status->max_lock, dvfs_status->step);
 		}
-#endif
+
 		kbase_platform_dvfs_set_level(dvfs_status->kbdev, dvfs_status->step);
 	}
 
